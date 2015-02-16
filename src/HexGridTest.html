@@ -158,10 +158,11 @@
             //.attr("colorval", function (d) { return d.color})
             //.attr("class", function (d) { return d.fill ? "fill" : null; })
             .style("fill", function (d) { return playerData.players[d.color].color })
-            .text(function (d) { return d.coords })
             .on("mousedown", mousedown)
-            .on("mousemove", mousemove)
-            .on("mouseup", mouseup);
+            //.on("mousemove", mousemove)
+            //.on("mouseup", mouseup)
+            .append("text")
+            .text(function (d) { return d.coords });
 
 
         svg.append("path")
@@ -175,7 +176,7 @@
             .on("mouseover", highlight)
             .on("mouseout", dehighlight);
 
-        
+
         var border = svg.append("path")
             .attr("class", "border")
             .call(redraw);
@@ -201,24 +202,15 @@
 
 
         function mousedown(d) {
-            //mousing = d.fill ? -1 : +1;
-            //console.log(d.coords);
             var cubicCoords = convertToCubic(d.coords);
-            //console.log(cubicCoords);
-            //console.log(convertToRegular(cubicCoords));
-            //console.log(d.arcs[0]);
-            //mousing = colorArr[d.counter] === currentPlayer ? -1 : 1;
             mousing = mapData.points[d.coords[0]][d.coords[1]].currentPlayerIndex === currentPlayer ? -1 : 1;
-            mousemove.apply(this, arguments);
+            //mousemove.apply(this, arguments);
             var adjacentPointStr = "";
             var adjacentPoints = getAdjacentPoints(d.coords);
             for (var i = 0; i < adjacentPoints.length; i++) {
                 adjacentPointStr += adjacentPoints[i] + "|";
             }
             console.log(adjacentPointStr);
-        }
-
-        function mousemove(d) {
             if (mousing) {
                 //d3.select(this).classed("fill", d.fill = mousing > 0);
                 d3.select(this).style("fill", playerData.players[currentPlayer].color);
@@ -226,23 +218,50 @@
                 //mapData.points[d.point[0]][d.point[1]] = currentPlayer;
                 updateMapData(d.coords, currentPlayer);
                 border.call(redraw);
-                var adjacentPoints = getAdjacentPoints(d.coords);
-              
-            }
-            else {
-                //var adjacentPointStr = "";
-                //var adjacentPoints = getAdjacentPoints(d.coords);
-                //for (var i = 0; i < adjacentPoints.length; i++) {
-                //    adjacentPointStr += adjacentPoints[i] + "|";
-                //}
-                //console.log(adjacentPointStr);
             }
         }
 
-        function mouseup() {
-            mousemove.apply(this, arguments);
-            mousing = 0;
-        }
+        //function mousedown(d) {
+        //    //mousing = d.fill ? -1 : +1;
+        //    //console.log(d.coords);
+        //    var cubicCoords = convertToCubic(d.coords);
+        //    //console.log(cubicCoords);
+        //    //console.log(convertToRegular(cubicCoords));
+        //    //console.log(d.arcs[0]);
+        //    //mousing = colorArr[d.counter] === currentPlayer ? -1 : 1;
+        //    mousing = mapData.points[d.coords[0]][d.coords[1]].currentPlayerIndex === currentPlayer ? -1 : 1;
+        //    mousemove.apply(this, arguments);
+        //    var adjacentPointStr = "";
+        //    var adjacentPoints = getAdjacentPoints(d.coords);
+        //    for (var i = 0; i < adjacentPoints.length; i++) {
+        //        adjacentPointStr += adjacentPoints[i] + "|";
+        //    }
+        //    console.log(adjacentPointStr);
+        //}
+
+        //function mousemove(d) {
+        //    if (mousing) {
+        //        //d3.select(this).classed("fill", d.fill = mousing > 0);
+        //        d3.select(this).style("fill", playerData.players[currentPlayer].color);
+        //        //colorArr[d.counter] = currentPlayer;
+        //        //mapData.points[d.point[0]][d.point[1]] = currentPlayer;
+        //        updateMapData(d.coords, currentPlayer);
+        //        border.call(redraw);
+        //    }
+        //    else {
+        //        //var adjacentPointStr = "";
+        //        //var adjacentPoints = getAdjacentPoints(d.coords);
+        //        //for (var i = 0; i < adjacentPoints.length; i++) {
+        //        //    adjacentPointStr += adjacentPoints[i] + "|";
+        //        //}
+        //        //console.log(adjacentPointStr);
+        //    }
+        //}
+
+        //function mouseup() {
+        //    mousemove.apply(this, arguments);
+        //    mousing = 0;
+        //}
 
 
         function highlight(d) {
@@ -445,15 +464,45 @@
                     adjacentPointsArr.push(calculatedPointsArr[i]);
                 }
             }
-             
+
             return adjacentPointsArr;
         }
 
-        function getPointsInRange(coords, range) {
+        function getPointsInRange2(coords, range) {
+            if (coords.length === 2) {
+                coords = convertToCubic(coords);
+            }
+            var results = [];
+
 
         }
 
 
+        function getPointsInRange(coords, range) {
+            if (coords.length === 2) {
+                coords = convertToCubic(coords);
+            }
+            var results = [];
+            for (var dx = -range; dx <= range; dx++) {
+                for (var dy = Math.max(-range, -dx - range) ; dy <= Math.min(range, -dx + range) ; dy++) {
+                    var dz = -dx - dy;
+                    results.push(convertToRegular([dx, dy, dz]));
+                }
+            }
+            return results;
+        }
+
+        function indexOfArray(array, value) {
+            for (var i = 0; i < array.length; i++) {
+                for (var j = 0; j < array[i].length; j++) {
+                    if (array[i][j] !== value[j]) {
+                        break;
+                    }
+                    return i;
+                }
+            }
+            return -1;
+        }
 
 
 
