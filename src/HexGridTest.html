@@ -1,46 +1,54 @@
 ﻿<!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-    .hexagon {
+    .hexagon
+    {
         /*fill: blue;*/
         pointer-events: all;
     }
 
-    .hexagon path {
+    .hexagon path
+    {
         -webkit-transition: fill 50ms linear;
         transition: fill 10ms linear;
         pointer-events: all;
     }
 
-    .hexagon :hover {
+    .hexagon :hover
+    {
         fill: pink;
     }
 
-    .hexagon .fill {
+    .hexagon .fill
+    {
         fill: red;
     }
 
-    .mesh {
+    .mesh
+    {
         fill: none;
         stroke: #000;
         stroke-opacity: .2;
         pointer-events: none;
     }
 
-    .border {
+    .border
+    {
         fill: none;
         stroke: #000;
         stroke-width: 2px;
         pointer-events: none;
     }
 
-    #scoreboard {
+    #scoreboard
+    {
         width: 400px;
         height: 400px;
         float: right;
     }
 
-    .card {
+    .card
+    {
         background-color: #f4f4f4;
         fill: cyan;
         height: 100px;
@@ -149,7 +157,8 @@
             .on("mousedown", changeCurrentPlayer)
             .style("background-color", function (d) { return d.color });
 
-        svg.append("g")
+
+        var grid = svg.append("g")
             .attr("class", "hexagon")
             .selectAll("path")
             .data(topology.objects.hexagons.geometries)
@@ -157,12 +166,12 @@
             .attr("d", function (d) { return path(topojson.feature(topology, d)); })
             //.attr("colorval", function (d) { return d.color})
             //.attr("class", function (d) { return d.fill ? "fill" : null; })
-            .style("fill", function (d) { return playerData.players[d.color].color })
-            .on("mousedown", mousedown)
-            //.on("mousemove", mousemove)
-            //.on("mouseup", mouseup)
-            .append("text")
-            .text(function (d) { return d.coords });
+            //.style("fill", function (d) { return playerData.players[d.color].color })
+            .style("fill", function (d) { return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color })
+            .on("mousedown", mousedown);
+        //.on("mousemove", mousemove)
+        //.on("mouseup", mouseup)
+
 
 
         svg.append("path")
@@ -205,12 +214,7 @@
             var cubicCoords = convertToCubic(d.coords);
             mousing = mapData.points[d.coords[0]][d.coords[1]].currentPlayerIndex === currentPlayer ? -1 : 1;
             //mousemove.apply(this, arguments);
-            var adjacentPointStr = "";
-            var adjacentPoints = getAdjacentPoints(d.coords);
-            for (var i = 0; i < adjacentPoints.length; i++) {
-                adjacentPointStr += adjacentPoints[i] + "|";
-            }
-            console.log(adjacentPointStr);
+            console.log(getAdjacentPoints(d.coords).join("|"));
             if (mousing) {
                 //d3.select(this).classed("fill", d.fill = mousing > 0);
                 d3.select(this).style("fill", playerData.players[currentPlayer].color);
@@ -219,6 +223,8 @@
                 updateMapData(d.coords, currentPlayer);
                 border.call(redraw);
             }
+            highlightPoints(getAdjacentPoints(d.coords), "black");
+            highlightPoints(getPointsInRange(d.coords,1));
         }
 
         //function mousedown(d) {
@@ -276,6 +282,23 @@
             d3.select(this).style("fill", normalColor);
         }
 
+        function highlightPoints(coordsSet, color) {
+           
+            grid.style("fill", function (d) { return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color });
+
+            grid.filter(function (d) {
+                if (areCoordsPresent(coordsSet, d.coords, false)) return this;
+                else return null;
+            })
+            .style("fill", function(d) {
+                if (color == null)
+                    return d3.hsl(mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color).darker().darker().toString();
+                else
+                    return color;
+            });
+
+        }
+
 
         function redraw(border) {
             try {
@@ -284,7 +307,9 @@
                 //border.attr("d", path(topojson.mesh(topology, topology.objects.hexagons, function (a, b) { return colorArr[a.counter] != colorArr[b.counter] })));
                 border.attr("d", path(topojson.mesh(topology, topology.objects.hexagons,
                     function (a, b) {
-                        return mapData.points[a.coords[0]][a.coords[1]].currentPlayerIndex != mapData.points[b.coords[0]][b.coords[1]].currentPlayerIndex;
+                        return mapData.points[a.coords[0]][a.coords[1]].currentPlayerIndex !== mapData.points[b.coords[0]][b.coords[1]].currentPlayerIndex;
+                        //return a.style.getPropertyValue("fill") !== b.style.getPropertyValue("fill");
+
                     })));
             }
             catch (e) {
@@ -364,8 +389,11 @@
         }
 
         function convertToCubic(normalCoordSet) {
-            var q = normalCoordSet[0];
-            var r = normalCoordSet[1];
+            if (!Array.isArray(normalCoordSet)) {
+                normalCoordSet = normalCoordSet.split(",");
+            }
+            var r = parseInt(normalCoordSet[0]);
+            var q = parseInt(normalCoordSet[1]);
             var x = q - (r + (r & 1)) / 2;
             var z = r;
             var y = -x - z;
@@ -373,11 +401,14 @@
         }
 
         function convertToRegular(cubicCoordSet) {
-            var x = cubicCoordSet[0];
-            var y = cubicCoordSet[1];
-            var z = cubicCoordSet[2];
-            var q = x + (z + (z & 1)) / 2;
-            var r = z;
+            if (!Array.isArray(cubicCoordSet)) {
+                cubicCoordSet = cubicCoordSet.split(",");
+            }
+            var x = parseInt(cubicCoordSet[0]);
+            var y = parseInt(cubicCoordSet[1]);
+            var z = parseInt(cubicCoordSet[2]);
+            var r = x + (z + (z & 1)) / 2;
+            var q = z;
             return [q, r];
         }
 
@@ -449,6 +480,8 @@
                 coords = convertToCubic(coords);
             }
 
+
+
             var calculatedPointsArr = [
                 convertToRegular([coords[0] - 1, coords[1] + 1, coords[2]]),
                 convertToRegular([coords[0] + 1, coords[1] - 1, coords[2]]),
@@ -464,17 +497,7 @@
                     adjacentPointsArr.push(calculatedPointsArr[i]);
                 }
             }
-
             return adjacentPointsArr;
-        }
-
-        function getPointsInRange2(coords, range) {
-            if (coords.length === 2) {
-                coords = convertToCubic(coords);
-            }
-            var results = [];
-
-
         }
 
 
@@ -482,27 +505,35 @@
             if (coords.length === 2) {
                 coords = convertToCubic(coords);
             }
-            var results = [];
+            var rangePointsArr = [];
             for (var dx = -range; dx <= range; dx++) {
                 for (var dy = Math.max(-range, -dx - range) ; dy <= Math.min(range, -dx + range) ; dy++) {
                     var dz = -dx - dy;
-                    results.push(convertToRegular([dx, dy, dz]));
+                    var calculatedPoint = convertToRegular([coords[0] + dx, coords[1] + dy, coords[2] + dz]);
+                    if (isValidPoint(calculatedPoint)) {
+                        rangePointsArr.push(calculatedPoint);
+                    }
                 }
             }
-            return results;
+            return rangePointsArr;
         }
 
-        function indexOfArray(array, value) {
-            for (var i = 0; i < array.length; i++) {
-                for (var j = 0; j < array[i].length; j++) {
-                    if (array[i][j] !== value[j]) {
-                        break;
-                    }
-                    return i;
+
+        function areCoordsPresent(array, coords, isMultiDimensional) {
+
+            if (isMultiDimensional) {
+                for (var i = 0; i < array.length; i++) {
+                    if(areCoordsPresent(array[i], coords, false)) return true;
                 }
             }
-            return -1;
+            else {
+                for (var i = 0; i < array.length; i++) {
+                    if (array[i][0] === coords[0] && array[i][1] === coords[1]) return true;
+                }
+            }
+            return false;
         }
+
 
 
 
