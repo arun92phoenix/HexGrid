@@ -172,6 +172,13 @@
         //.on("mousemove", mousemove)
         //.on("mouseup", mouseup)
 
+        grid.text(function(d){
+            return path.centroid(d)[0];
+        })
+
+
+
+
 
 
         svg.append("path")
@@ -225,6 +232,9 @@
             }
             highlightPoints(getAdjacentPoints(d.coords), "black");
             highlightPoints(getPointsInRange(d.coords,1));
+            d3.select(this).each(function(d){
+                console.log(path.centroid(d));
+            })
         }
 
         //function mousedown(d) {
