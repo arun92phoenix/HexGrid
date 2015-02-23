@@ -156,9 +156,11 @@
 
         var grid = svg.append("g")
             .attr("class", "hexagon")
-            .selectAll("path")
+            .selectAll("g")
             .data(topology.objects.hexagons.geometries)
-            .enter().append("path")
+            .enter()
+            .append("g")
+            .append("path")
             .attr("d", function (d) { return path(topojson.feature(topology, d)); })
             .each(function (d) {
                 mapData.points[d.coords[0]][d.coords[1]].centroid = path.centroid(topojson.feature(topology, d));
@@ -168,6 +170,9 @@
             //.style("fill", function (d) { return playerData.players[d.color].color })
             .style("fill", function (d) { return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color })
             .on("mousedown", mousedown);
+
+
+
         //.on("mousemove", mousemove)
         //.on("mouseup", mouseup)
 
