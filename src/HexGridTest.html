@@ -59,11 +59,11 @@
         "use strict";
 
         /*
-        var addEventListener = window.EventTarget.prototype.addEventListener;
-        window.EventTarget.prototype.addEventListener = function (event, callback, bubble) {
-            addEventListener.call(this, event, wrap(callback), bubble);
-        }
-        */
+         var addEventListener = window.EventTarget.prototype.addEventListener;
+         window.EventTarget.prototype.addEventListener = function (event, callback, bubble) {
+         addEventListener.call(this, event, wrap(callback), bubble);
+         }
+         */
 
 
         var isPointSelected = false;
@@ -71,8 +71,8 @@
         var highlightedPointsDataSet = [];
 
         var width = 900,
-            height = 900,
-            radius = 50;
+                height = 900,
+                radius = 50;
 
         // width = window.innerHeight;
         //height = window.innerHeight;
@@ -80,9 +80,7 @@
         var mapPlayers = [];
 
         var mapData = {
-            "points": [
-
-            ]
+            "points": []
         };
 
         var colorSet = ["yellow", "cyan", "#FF3399", "#A9CA21"];
@@ -90,31 +88,31 @@
         var playerData = {
 
             "players": [
-            {
-                "id": 1,
-                "type": "human",
-                "index": 0,
-                "color": "yellow"
-            },
-            {
-                "id": 2,
-                "type": "human",
-                "index": 1,
-                "color": "cyan"
-            },
-            {
-                "id": 3,
-                "type": "human",
-                "index": 2,
-                "color": "red"
-            },
+                {
+                    "id": 1,
+                    "type": "human",
+                    "index": 0,
+                    "color": "yellow"
+                },
+                {
+                    "id": 2,
+                    "type": "human",
+                    "index": 1,
+                    "color": "cyan"
+                },
+                {
+                    "id": 3,
+                    "type": "human",
+                    "index": 2,
+                    "color": "red"
+                },
 
-            {
-                "id": 4,
-                "type": "human",
-                "index": 3,
-                "color": "#A9CA21"
-            }
+                {
+                    "id": 4,
+                    "type": "human",
+                    "index": 3,
+                    "color": "#A9CA21"
+                }
 
             ]
         };
@@ -122,81 +120,86 @@
         var topology = hexTopology(radius, width, height);
 
 
-
-
         var currentPlayer = 1;
 
         var currentPlayerData = playerData.players[1];
 
 
-
         var projection = hexProjection(radius);
 
         var path = d3.geo.path()
-            .projection(projection);
+                .projection(projection);
 
         var svg = d3.select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+                .attr("width", width)
+                .attr("height", height);
 
         var scoreDiv = d3.select("body").append("div").attr("id", "scoreboard");
 
 
         var playerCard = scoreDiv
-            .selectAll("div")
-            .data(playerData.players)
-            .enter()
-            .append("div")
-            .attr("class", "card")
-            .on("mouseover", highlightCard)
-            .on("mouseout", dehighlightCard)
-            .on("mousedown", changeCurrentPlayer)
-            .style("background-color", function (d) { return d.color });
+                .selectAll("div")
+                .data(playerData.players)
+                .enter()
+                .append("div")
+                .attr("class", "card")
+                .on("mouseover", highlightCard)
+                .on("mouseout", dehighlightCard)
+                .on("mousedown", changeCurrentPlayer)
+                .style("background-color", function (d) {
+                    return d.color
+                });
 
 
         var grid = svg.append("g")
-            .attr("class", "hexagon")
-            .selectAll("g")
-            .data(topology.objects.hexagons.geometries)
-            .enter()
-            .append("g")
-            .append("path")
-            .attr("d", function (d) { return path(topojson.feature(topology, d)); })
-            .each(function (d) {
-                mapData.points[d.coords[0]][d.coords[1]].centroid = path.centroid(topojson.feature(topology, d));
-            })
-            //.attr("colorval", function (d) { return d.color})
-            //.attr("class", function (d) { return d.fill ? "fill" : null; })
-            //.style("fill", function (d) { return playerData.players[d.color].color })
-            .style("fill", function (d) { return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color })
-            .on("mousedown", mousedown);
+                .attr("class", "hexagon")
+                .selectAll("g")
+                .data(topology.objects.hexagons.geometries)
+                .enter()
+                .append("g");
 
+        var gridPath = grid
+                .append("path")
+                .attr("d", function (d) {
+                    return path(topojson.feature(topology, d));
+                })
+                .each(function (d) {
+                    mapData.points[d.coords[0]][d.coords[1]].centroid = path.centroid(topojson.feature(topology, d));
+                })
+                .style("fill", function (d) {
+                    return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color
+                })
+                .on("mousedown", mousedown);
 
+        var gridPoints = grid.append("g")
+                .append("circle")
+                .attr("cx", function (d) {
+                    return mapData.points[d.coords[0]][d.coords[1]].centroid[0]
+                })
+                .attr("cy", function (d) {
+                    return mapData.points[d.coords[0]][d.coords[1]].centroid[1]
+                })
+                .style("fill", "blue")
+                .attr("r", 3);
 
-        //.on("mousemove", mousemove)
-        //.on("mouseup", mouseup)
-
-        var highlightPoints = svg.append("g");
-
-
-
+        var gridLines = null;
 
 
         svg.append("path")
-            .datum(topojson.mesh(topology, topology.objects.hexagons))
-            .attr("class", "mesh")
-            .attr("d", path);
+                .datum(topojson.mesh(topology, topology.objects.hexagons))
+                .attr("class", "mesh")
+                .attr("d", path);
 
         var hexagon = d3.select("body")
-            .select(".hexagon")
-            .selectAll("path")
-            .on("mouseover", highlight)
-            .on("mouseout", dehighlight);
+                .select(".hexagon")
+                .selectAll("path")
+                .on("mouseover", highlight)
+                .on("mouseout", dehighlight);
 
 
         var border = svg.append("path")
-            .attr("class", "border")
-            .call(redraw);
+                .attr("class", "border")
+                .call(redraw);
 
         var mousing = 0;
 
@@ -208,6 +211,30 @@
             if (d.index !== currentPlayer) {
                 d3.select(this).style("background-color", d.color);
             }
+        }
+
+        function redrawMap() {
+            if (gridLines != null) {
+                gridLines.remove();
+            }
+            gridLines = svg.append("g");
+
+            gridLines.append("line")
+            .attr("x1", function () {
+                console.log(selectedPointsDataSet[0][0], selectedPointsDataSet[0][1])
+                return mapData.points[selectedPointsDataSet[0][0]][selectedPointsDataSet[0][1]].centroid[0];
+            })
+            .attr("y1", function () {
+                return mapData.points[selectedPointsDataSet[0][0]][selectedPointsDataSet[0][1]].centroid[1];
+            })
+            .attr("x2", function () {
+                return mapData.points[highlightedPointsDataSet[0][0]][highlightedPointsDataSet[0][1]].centroid[0];
+            })
+            .attr("y2", function () {
+                return mapData.points[highlightedPointsDataSet[0][0]][highlightedPointsDataSet[0][1]].centroid[1];
+            })
+            .attr("stroke", "black")
+            .attr("stroke-width", 2);
         }
 
         function changeCurrentPlayer(d) {
@@ -233,63 +260,12 @@
             }
             else {
                 //highlightPoints(getAdjacentPoints(d.coords), "black");
-                highlightPoints(getPointsInRange(d.coords, 0));
-                isPointSelected = true;
-                var x = svg.append("circle")
-                    .attr("cx", mapData.points[d.coords[0]][d.coords[1]].centroid[0])
-                    .attr("cy", mapData.points[d.coords[0]][d.coords[1]].centroid[1])
-                    .attr("r", 3);
-                selectedPointsDataSet.push(x);
-
+                selectedPointsDataSet = [];
+                //highlightPoints(getPointsInRange(d.coords, 0));
+                selectedPointsDataSet.push(d.coords);
+                //selectedPointsDataSet.push(x);
             }
-
-
-            //d3.select(this).each(function(d){
-            //    console.log(path.centroid(d));
-            //})
         }
-
-        //function mousedown(d) {
-        //    //mousing = d.fill ? -1 : +1;
-        //    //console.log(d.coords);
-        //    var cubicCoords = convertToCubic(d.coords);
-        //    //console.log(cubicCoords);
-        //    //console.log(convertToRegular(cubicCoords));
-        //    //console.log(d.arcs[0]);
-        //    //mousing = colorArr[d.counter] === currentPlayer ? -1 : 1;
-        //    mousing = mapData.points[d.coords[0]][d.coords[1]].currentPlayerIndex === currentPlayer ? -1 : 1;
-        //    mousemove.apply(this, arguments);
-        //    var adjacentPointStr = "";
-        //    var adjacentPoints = getAdjacentPoints(d.coords);
-        //    for (var i = 0; i < adjacentPoints.length; i++) {
-        //        adjacentPointStr += adjacentPoints[i] + "|";
-        //    }
-        //    console.log(adjacentPointStr);
-        //}
-
-        //function mousemove(d) {
-        //    if (mousing) {
-        //        //d3.select(this).classed("fill", d.fill = mousing > 0);
-        //        d3.select(this).style("fill", playerData.players[currentPlayer].color);
-        //        //colorArr[d.counter] = currentPlayer;
-        //        //mapData.points[d.point[0]][d.point[1]] = currentPlayer;
-        //        updateMapData(d.coords, currentPlayer);
-        //        border.call(redraw);
-        //    }
-        //    else {
-        //        //var adjacentPointStr = "";
-        //        //var adjacentPoints = getAdjacentPoints(d.coords);
-        //        //for (var i = 0; i < adjacentPoints.length; i++) {
-        //        //    adjacentPointStr += adjacentPoints[i] + "|";
-        //        //}
-        //        //console.log(adjacentPointStr);
-        //    }
-        //}
-
-        //function mouseup() {
-        //    mousemove.apply(this, arguments);
-        //    mousing = 0;
-        //}
 
 
         function highlight(d) {
@@ -297,6 +273,11 @@
             //var highlightColor = d3.hsl(playerData.players[colorArr[d.counter]].color).brighter().toString();
             var highlightColor = d3.hsl(mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color).brighter().toString();
             d3.select(this).style("fill", highlightColor);
+            if (selectedPointsDataSet.length > 0) {
+                highlightedPointsDataSet = [];
+                highlightedPointsDataSet.push(d.coords);
+                redrawMap();
+            }
         }
 
         function dehighlight(d) {
@@ -306,12 +287,15 @@
 
         function highlightPoints(coordsSet, color) {
 
-            grid.style("fill", function (d) { return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color });
+            gridPath.style("fill", function (d) {
+                return mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color
+            });
 
-            grid.filter(function (d) {
+            gridPath.filter(function (d) {
                 if (areCoordsPresent(coordsSet, d.coords, false)) return this;
                 else return null;
             })
+
             .style("fill", function (d) {
                 if (color == null)
                     return d3.hsl(mapData.points[d.coords[0]][d.coords[1]].currentPlayerData.color).darker().darker().toString();
@@ -328,11 +312,11 @@
                 //border.attr("d", path(topojson.mesh(topology, topology.objects.hexagons, function (a, b) { return a.color != b.color; })));
                 //border.attr("d", path(topojson.mesh(topology, topology.objects.hexagons, function (a, b) { return colorArr[a.counter] != colorArr[b.counter] })));
                 border.attr("d", path(topojson.mesh(topology, topology.objects.hexagons,
-                    function (a, b) {
-                        return mapData.points[a.coords[0]][a.coords[1]].currentPlayerIndex !== mapData.points[b.coords[0]][b.coords[1]].currentPlayerIndex;
-                        //return a.style.getPropertyValue("fill") !== b.style.getPropertyValue("fill");
-                        //console.log(a, b);
-                    })));
+                        function (a, b) {
+                            return mapData.points[a.coords[0]][a.coords[1]].currentPlayerIndex !== mapData.points[b.coords[0]][b.coords[1]].currentPlayerIndex;
+                            //return a.style.getPropertyValue("fill") !== b.style.getPropertyValue("fill");
+                            //console.log(a, b);
+                        })));
             }
             catch (e) {
                 console.log(e.message, e.name);
@@ -343,11 +327,11 @@
 
         function hexTopology(radius, width, height) {
             var dx = radius * 2 * Math.sin(Math.PI / 3),
-                dy = radius * 1.5,
-                m = Math.ceil((height + radius) / dy) + 1,
-                n = Math.ceil(width / dx) + 1,
-                geometries = [],
-                arcs = [];
+                    dy = radius * 1.5,
+                    m = Math.ceil((height + radius) / dy) + 1,
+                    n = Math.ceil(width / dx) + 1,
+                    geometries = [],
+                    arcs = [];
 
             for (var j = -1; j <= m; ++j) {
                 for (var i = -1; i <= n; ++i) {
@@ -396,15 +380,25 @@
 
         function hexProjection(radius) {
             var dx = radius * 2 * Math.sin(Math.PI / 3),
-                dy = radius * 1.5;
+                    dy = radius * 1.5;
             return {
                 stream: function (stream) {
                     return {
-                        point: function (x, y) { stream.point(x * dx / 2, (y - (2 - (y & 1)) / 3) * dy / 2); },
-                        lineStart: function () { stream.lineStart(); },
-                        lineEnd: function () { stream.lineEnd(); },
-                        polygonStart: function () { stream.polygonStart(); },
-                        polygonEnd: function () { stream.polygonEnd(); }
+                        point: function (x, y) {
+                            stream.point(x * dx / 2, (y - (2 - (y & 1)) / 3) * dy / 2);
+                        },
+                        lineStart: function () {
+                            stream.lineStart();
+                        },
+                        lineEnd: function () {
+                            stream.lineEnd();
+                        },
+                        polygonStart: function () {
+                            stream.polygonStart();
+                        },
+                        polygonEnd: function () {
+                            stream.polygonEnd();
+                        }
                     };
                 }
             };
@@ -452,25 +446,16 @@
                 if (coords.length === 2) {
                     x = coords[0];
                     y = coords[1];
-                    pointDataNew = {
-                        currentPlayerIndex: playerIndex,
-                        currentPlayerData: playerData.players[playerIndex],
-                        regularCoords: coords,
-                        cubicCoords: convertToCubic(coords)
-                    };
-                } else if (coords.length === 3) {
+                }
+                else if (coords.length === 3) {
                     x = convertToRegular[coords][0];
                     y = convertToRegular[coords][1];
-                    pointDataNew = {
-                        currentPlayerIndex: playerIndex,
-                        currentPlayerData: playerData.players[playerIndex],
-                        regularCoords: convertToRegular[coords],
-                        cubicCoords: coords
-                    };
-                } else {
+                }
+                else {
                     throw new UserException("Invalid Parameters");
                 }
-                mapData.points[x][y] = pointDataNew;
+                mapData.points[x][y].currentPlayerIndex = playerIndex;
+                mapData.points[x][y].currentPlayerData = playerData.players[playerIndex];
             }
 
             catch (e) {
@@ -506,7 +491,6 @@
             if (coords.length === 2) {
                 coords = convertToCubic(coords);
             }
-
 
 
             var calculatedPointsArr = [
@@ -560,8 +544,6 @@
             }
             return false;
         }
-
-
 
 
     </script>
