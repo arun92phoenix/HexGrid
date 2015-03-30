@@ -1,0 +1,10 @@
+Challenge 
+To find the centroid of the hexagons to highlight and draw lines between two hexagons
+Solution
+d3 has a built in solution to find the centroid of the path geometries drawn in SVG
+
+Challenge
+To highlight hexagons which a line is passing over
+Possible Solution
+To use linear interpolation to find multiple points on the line and then highlight each hexagon which it belongs to.
+This is a two part solution. One, to find the points using lerp. Second, to find the hexagon which it belongs to.

@@ -66,6 +66,13 @@
          */
 
 
+        var Point = function (x, y, z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+
         var isPointSelected = false;
         var selectedPointsDataSet = [];
         var highlightedPointsDataSet = [];
@@ -221,7 +228,7 @@
 
             gridLines.append("line")
             .attr("x1", function () {
-                console.log(selectedPointsDataSet[0][0], selectedPointsDataSet[0][1])
+                //console.log(selectedPointsDataSet[0][0], selectedPointsDataSet[0][1])
                 return mapData.points[selectedPointsDataSet[0][0]][selectedPointsDataSet[0][1]].centroid[0];
             })
             .attr("y1", function () {
@@ -545,6 +552,16 @@
             return false;
         }
 
+
+        function lerp(start, end, t) {
+            return start + t * (end - start);
+        }
+
+        function lerp_point(p0, p1, t) {
+            return new Point(lerp(p0[0], p1[1], t),
+                             lerp(p0[0], p1[1], t));
+        }
+        
 
     </script>
 </body>
